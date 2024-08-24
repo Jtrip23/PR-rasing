@@ -23,7 +23,7 @@ jobs:
               
 
       - name: Raise PR in GitHub
-        run: python pr.py
+        run: python pr1.py
         env:
           USERNAME: ${{ secrets.USERNAME }}
           TOKEN: ${{ secrets.TOKEN }}
