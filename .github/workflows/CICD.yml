@@ -32,6 +32,5 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: pr-links
-          path: |
-            pr_links.xlsx
-            pr_links.txt
+          path: pr_links.xlsx
+            
