@@ -47,7 +47,7 @@ def process_excel_file(username, token, excel_file):
 if __name__ == "__main__":
     username = os.getenv('USERNAME')
     token = os.getenv('TOKEN')
-    excel_file = os.getenv('EXCEL_FILE', 'repositories.xlsx')  # Path to your Excel file
+    excel_file = os.getenv('EXCEL_FILE', 'reponames.xlsx')  # Path to your Excel file
 
     if not username or not token:
         logger.error("USERNAME or TOKEN environment variable not set.")
