@@ -27,3 +27,11 @@ jobs:
         env:
           USERNAME: ${{ secrets.USERNAME }}
           TOKEN: ${{ secrets.TOKEN }}
+      
+      - name: Upload PR links as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: pr-links
+          path: |
+            pr_links.xlsx
+            pr_links.txt
