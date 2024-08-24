@@ -1,64 +1,55 @@
 import os
+import logging
 from github import Github
 import pandas as pd
-import logging
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def create_pr(username, token, repo_name, base_branch, new_branch_name, pr_title, pr_body, reviewers):
+def create_pull_request(username, token, repo_name, base_branch, head_branch, reviewers):
     try:
         g = Github(username, token)
         repo = g.get_repo(f"{username}/{repo_name}")
-
-        # Check if the branch exists
-        try:
-            repo.get_branch(new_branch_name)
-        except Exception as e:
-            logging.error(f"Branch '{new_branch_name}' does not exist in repository '{repo_name}': {e}")
-            return
-
-        # Create a pull request
         pr = repo.create_pull(
-            title=pr_title,
-            body=pr_body,
-            head=new_branch_name,
-            base=base_branch
+            title=f"Merge {head_branch} into {base_branch}",
+            body="Automated PR created from script.",
+            base=base_branch,
+            head=head_branch
         )
-        logging.info(f"Pull request created successfully: {pr.html_url}")
+        logger.info(f"Pull request created successfully in '{repo_name}': {pr.html_url}")
 
-        # Add reviewers
-        repo.request_reviewers(pr.number, reviewers)
-        logging.info(f"Reviewers {reviewers} added to pull request.")
+        # Add reviewers to the PR
+        if reviewers:
+            reviewers_list = [reviewer.strip() for reviewer in reviewers.split(',')]
+            repo.get_pull(pr.number).review_requests.create(reviewers=reviewers_list)
+            logger.info(f"Reviewers added to PR in '{repo_name}': {', '.join(reviewers_list)}")
 
     except Exception as e:
-        logging.error(f"Error creating PR in '{repo_name}': {e}")
+        logger.error(f"Error creating pull request in repository '{repo_name}': {e}")
 
-def create_prs_from_excel(username, token, excel_file):
+def process_excel_file(username, token, excel_file):
     try:
         df = pd.read_excel(excel_file, engine='openpyxl')
-
-        # Hardcoded reviewers
-        reviewers = ['reviewer1', 'reviewer2']  # Replace with actual GitHub usernames
-
+        required_columns = {'name', 'base_branch', 'head_branch', 'reviewers'}
+        if not required_columns.issubset(df.columns):
+            raise ValueError(f"Excel file must contain columns: {', '.join(required_columns)}")
+        
         for index, row in df.iterrows():
             repo_name = row['name']
             base_branch = row['base_branch']
-            new_branch_name = row['new_branch']
-            pr_title = row['pr_title'] if 'pr_title' in row else 'New Pull Request'
-            pr_body = row['pr_body'] if 'pr_body' in row else 'Please review the changes.'
-
-            create_pr(username, token, repo_name, base_branch, new_branch_name, pr_title, pr_body, reviewers)
-    
+            head_branch = row['head_branch']
+            reviewers = row['reviewers']
+            create_pull_request(username, token, repo_name, base_branch, head_branch, reviewers)
     except Exception as e:
-        logging.error(f"Error reading Excel file or creating PRs: {e}")
+        logger.error(f"Error reading Excel file or creating pull requests: {e}")
 
 if __name__ == "__main__":
     username = os.getenv('USERNAME')
     token = os.getenv('TOKEN')
-    excel_file = 'repositories.xlsx'  # Path to your Excel file
+    excel_file = os.getenv('EXCEL_FILE', 'repositories.xlsx')  # Path to your Excel file
 
     if not username or not token:
-        raise ValueError("GitHub username or token not set in environment variables.")
-    
-    create_prs_from_excel(username, token, excel_file)
+        logger.error("USERNAME or TOKEN environment variable not set.")
+    else:
+        process_excel_file(username, token, excel_file)
