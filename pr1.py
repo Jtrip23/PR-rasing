@@ -74,7 +74,7 @@ def process_excel_file(username, token, excel_file, output_excel_file):
 if __name__ == "__main__":
     username = os.getenv('USERNAME')
     token = os.getenv('TOKEN')
-    excel_file = os.getenv('EXCEL_FILE', 'repositories.xlsx')
+    excel_file = os.getenv('EXCEL_FILE', 'reponames.xlsx')
     output_excel_file = os.getenv('OUTPUT_EXCEL_FILE', 'pr_links.xlsx')
     
     if not username or not token:
