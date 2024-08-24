@@ -25,7 +25,7 @@ def create_pull_request(username, token, repo_name, base_branch, head_branch):
         logger.error(f"Error creating pull request in repository '{repo_name}': {e}")
         return None
 
-def process_excel_file(username, token, excel_file, output_excel_file, output_text_file):
+def process_excel_file(username, token, excel_file, output_excel_file):
     """Process an Excel file to create pull requests and save PR URLs."""
     try:
         if not os.path.isfile(excel_file):
@@ -51,13 +51,7 @@ def process_excel_file(username, token, excel_file, output_excel_file, output_te
         pr_df = pd.DataFrame(pr_urls)
         pr_df.to_excel(output_excel_file, index=False)
         logger.info(f"PR URLs saved to '{output_excel_file}'")
-        
-        # Save PR URLs to text file
-        with open(output_text_file, 'w') as f:
-            for item in pr_urls:
-                f.write(f"Repository: {item['repo_name']}\nPR URL: {item['pr_url']}\n\n")
-        logger.info(f"PR URLs saved to '{output_text_file}'")
-        
+               
     except Exception as e:
         logger.error(f"Error reading Excel file or creating pull requests: {e}")
 
@@ -66,9 +60,9 @@ if __name__ == "__main__":
     token = os.getenv('TOKEN')
     excel_file = os.getenv('EXCEL_FILE', 'repositories.xlsx')  # Path to your Excel file
     output_excel_file = os.getenv('OUTPUT_EXCEL_FILE', 'pr_links.xlsx')  # Path to save PR links in Excel
-    output_text_file = os.getenv('OUTPUT_TEXT_FILE', 'pr_links.txt')  # Path to save PR links in text file
+    
 
     if not username or not token:
         logger.error("USERNAME or TOKEN environment variable not set.")
     else:
-        process_excel_file(username, token, excel_file, output_excel_file, output_text_file)
+        process_excel_file(username, token, excel_file, output_excel_file)
